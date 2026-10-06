@@ -1013,7 +1013,7 @@ body {
 }
 
 /* Mobile/tablet scrolling */
-@media (max-width: 960px) {
+@media (max-width: 600px) {
     .dashboard-content-grid {
         grid-template-columns: 1fr;
     }
