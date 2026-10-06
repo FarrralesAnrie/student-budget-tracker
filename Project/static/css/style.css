@@ -1061,4 +1061,55 @@ body {
         width: 100%;
     }
 }
+   /* Fix mobile screen width */
+@media (max-width: 600px) {
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .app-container {
+        width: 100%;
+        max-width: 100%;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        overflow-x: hidden;
+    }
+
+    .card {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .dashboard-content-grid {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .dashboard-content-grid > .card {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .form-control {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    /* Allow the expense table to scroll horizontally */
+    .expense-table-wrapper {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+
+    .expense-table {
+        min-width: 600px;
+    }
+}
 }
