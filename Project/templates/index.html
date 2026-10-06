@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Budget & Allowance Tracker</title>
+    <!-- Modern Typography: Inter & Outfit from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for clean icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="theme-light">
+    <div class="app-container">
+
+        <!-- HEADER & NAVIGATION -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <div>
+                    <h1 class="brand-title">PocketPal</h1>
+                    <p class="brand-subtitle">Student Allowance & Budget Tracker</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div id="studentProfileBadge" class="student-profile-badge hidden">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span id="currentStudentNameDisplay">Student</span>
+                </div>
+                
+                <button id="btnSwitchBudget" class="btn btn-secondary btn-sm hidden" onclick="openBudgetHistoryModal()">
+                    <i class="fa-solid fa-clock-history"></i> Budget History
+                </button>
+                
+                <button id="btnNewBudget" class="btn btn-outline btn-sm hidden" onclick="openBudgetSetupModal()">
+                    <i class="fa-solid fa-plus"></i> New Budget Period
+                </button>
+
+                <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Light/Dark Theme" onclick="toggleTheme()">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="app-main">
+
+            <!-- STEP 1: STUDENT WELCOME & INITIAL SETUP (Shown if no student set) -->
+            <section id="studentWelcomeSection" class="welcome-card card animate-fade-in">
+                <div class="welcome-header">
+                    <div class="welcome-icon">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                    </div>
+                    <h2>Welcome to Student Budget Tracker!</h2>
+                    <p>Manage your allowance, save money for your goals, and know your recommended daily spending limit easily.</p>
+                </div>
+
+                <form id="welcomeStudentForm" onsubmit="handleStudentWelcome(event)">
+                    <div class="form-group">
+                        <label for="welcomeStudentName">
+                            <i class="fa-solid fa-id-card"></i> What is your name?
+                        </label>
+                        <input type="text" id="welcomeStudentName" class="form-control" placeholder="e.g. Anrie" required autofocus>
+                    </div>
+
+                    <div id="welcomeError" class="alert alert-danger hidden"></div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">
+                        Get Started <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+            </section>
+
+
+            <!-- DASHBOARD SECTION (Shown when active budget exists) -->
+            <section id="dashboardSection" class="dashboard-section hidden animate-fade-in">
+
+                <!-- TOP WARNING BANNERS -->
+                <div id="warningContainer" class="warnings-container"></div>
+
+                <!-- DASHBOARD HERO BANNER -->
+                <div class="dashboard-hero card">
+                    <div class="hero-main-info">
+                        <div class="hero-badge">
+                            <i class="fa-solid fa-calendar-day"></i> Active Period: <strong id="dashBudgetTitle">7-Day Budget</strong>
+                        </div>
+                        <h2 class="hero-heading">
+                            Hello, <span id="dashStudentName">Student</span>!
+                        </h2>
+                        <p class="hero-sub">Here is your financial overview for this budget period.</p>
+                    </div>
+
+                    <div class="hero-daily-card">
+                        <div class="daily-card-label">
+                            <i class="fa-solid fa-calculator"></i> Recommended Daily Spending
+                        </div>
+                        <div class="daily-card-value" id="dashRecommendedDaily">₱0.00</div>
+                        <div class="daily-card-formula">
+                            <span class="formula-chip">(Allowance − Savings) ÷ Days</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- METRICS GRID -->
+                <div class="metrics-grid">
+                    
+                    <!-- Total Allowance -->
+                    <div class="metric-card card">
+                        <div class="metric-icon icon-blue">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                        </div>
+                        <div class="metric-details">
+                            <span class="metric-label">Total Allowance</span>
+                            <h3 class="metric-value" id="dashTotalAllowance">₱0.00</h3>
+                            <span class="metric-sub">Total money entered</span>
+                        </div>
+                    </div>
+
+                    <!-- Desired Savings -->
+                    <div class="metric-card card">
+                        <div class="metric-icon icon-emerald">
+                            <i class="fa-solid fa-vault"></i>
+                        </div>
+                        <div class="metric-details">
+                            <span class="metric-label">Desired Savings</span>
+                            <h3 class="metric-value" id="dashDesiredSavings">₱0.00</h3>
+                            <span class="metric-sub" id="dashSavingsSub">Goal set aside</span>
+                        </div>
+                    </div>
+
+                    <!-- Total Expenses -->
+                    <div class="metric-card card">
+                        <div class="metric-icon icon-amber">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        <div class="metric-details">
+                            <span class="metric-label">Total Expenses</span>
+                            <h3 class="metric-value text-amber" id="dashTotalExpenses">₱0.00</h3>
+                            <span class="metric-sub" id="dashExpenseCount">0 expenses recorded</span>
+                        </div>
+                    </div>
+
+                    <!-- Remaining Budget -->
+                    <div class="metric-card card">
+                        <div class="metric-icon icon-purple">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <div class="metric-details">
+                            <span class="metric-label">Remaining Budget</span>
+                            <h3 class="metric-value" id="dashRemainingBudget">₱0.00</h3>
+                            <span class="metric-sub" id="dashSpendableSub">Spendable pool left: ₱0.00</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SAVINGS PROGRESS BAR -->
+                <div class="savings-progress-card card">
+                    <div class="progress-header">
+                        <div class="progress-title">
+                            <i class="fa-solid fa-bullseye"></i> Savings Goal & Budget Health
+                        </div>
+                        <div class="progress-status-badge" id="savingsStatusBadge">
+                            <i class="fa-solid fa-shield-check"></i> Savings Intact
+                        </div>
+                    </div>
+
+                    <div class="progress-bar-container">
+                        <div id="savingsProgressBar" class="progress-bar-fill progress-emerald" style="width: 100%;"></div>
+                    </div>
+
+                    <div class="progress-footer">
+                        <span>Target Savings: <strong id="progressTargetSavings">₱0.00</strong></span>
+                        <span id="progressRemainingDays">Days Remaining: 7 days</span>
+                    </div>
+                </div>
+
+                <!-- TWO COLUMN LAYOUT: ADD EXPENSE & EXPENSES LIST -->
+                <div class="dashboard-content-grid">
+                    
+                    <!-- ADD EXPENSE FORM CARD -->
+                    <div class="card add-expense-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-circle-plus"></i> Record New Expense</h3>
+                        </div>
+
+                        <form id="addExpenseForm" onsubmit="handleAddExpense(event)">
+                            <div class="form-group">
+                                <label for="expenseDescription">Expense Description / Name</label>
+                                <div class="input-with-icon">
+                                    <i class="fa-solid fa-utensils input-icon"></i>
+                                    <input type="text" id="expenseDescription" class="form-control" placeholder="e.g. Lunch, Jeepney Fare, School Supplies" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-6">
+                                    <label for="expenseAmount">Amount Spent (₱)</label>
+                                    <div class="input-with-icon">
+                                        <span class="currency-prefix">₱</span>
+                                        <input type="number" id="expenseAmount" class="form-control currency-input" placeholder="0.00" step="0.01" min="0.01" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-6">
+                                    <label for="expenseDate">Date</label>
+                                    <input type="date" id="expenseDate" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div id="addExpenseError" class="alert alert-danger hidden"></div>
+
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Expense
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- EXPENSES LIST CARD -->
+                    <div class="card expense-list-card">
+                        <div class="card-header flex-between">
+                            <h3><i class="fa-solid fa-list-check"></i> Recorded Expenses</h3>
+                            <span class="badge badge-neutral" id="expenseListBadge">0 Items</span>
+                        </div>
+
+                        <div class="expense-table-wrapper">
+                            <table class="expense-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th class="text-right">Amount</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expensesTableBody">
+                                    <!-- Dynamic Rows -->
+                                    <tr id="noExpensesRow">
+                                        <td colspan="4" class="empty-state">
+                                            <i class="fa-solid fa-receipt empty-icon"></i>
+                                            <p>No expenses recorded for this budget period yet.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="expense-table-footer flex-between">
+                            <span>Total Period Expenses:</span>
+                            <strong class="total-expense-val" id="tableTotalExpenses">₱0.00</strong>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="app-footer">
+            <p>Student Budget & Allowance Tracker &copy; 2026 • Simple, Smart & Personal Finance for Students</p>
+        </footer>
+
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- MODAL 1: BUDGET SETUP MODAL -->
+    <div id="budgetSetupModal" class="modal-overlay hidden">
+        <div class="modal-card card animate-pop-in">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-sliders"></i> Create Budget Period</h3>
+                <button type="button" class="modal-close-btn" onclick="closeBudgetSetupModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="budgetSetupForm" onsubmit="handleCreateBudget(event)">
+                <div class="modal-body">
+                    
+                    <!-- Student Name Input -->
+                    <div class="form-group">
+                        <label for="setupStudentName">Student Name</label>
+                        <input type="text" id="setupStudentName" class="form-control" placeholder="e.g. Anrie" required>
+                    </div>
+
+                    <!-- Budget Title (Optional Label) -->
+                    <div class="form-group">
+                        <label for="setupBudgetTitle">Budget Period Label</label>
+                        <input type="text" id="setupBudgetTitle" class="form-control" placeholder="e.g. Week 1 Allowance / Midterm Week" value="7-Day Budget">
+                    </div>
+
+                    <!-- BUDGET PERIOD SLIDER (1 to 31 Days) -->
+                    <div class="form-group slider-group">
+                        <div class="flex-between mb-1">
+                            <label for="setupDaysSlider">
+                                <i class="fa-solid fa-calendar-days"></i> Budget Period Duration
+                            </label>
+                            <span id="sliderValueBadge" class="badge badge-primary badge-lg">7 days</span>
+                        </div>
+
+                        <div class="slider-container">
+                            <span class="slider-min-label">1 day</span>
+                            <input type="range" id="setupDaysSlider" min="1" max="31" value="7" class="custom-slider" oninput="updateSliderDisplay(this.value)">
+                            <span class="slider-max-label">31 days</span>
+                        </div>
+
+                        <!-- Quick Presets -->
+                        <div class="preset-buttons">
+                            <button type="button" class="btn-chip" onclick="setSliderPreset(7)">7 Days (1 Wk)</button>
+                            <button type="button" class="btn-chip" onclick="setSliderPreset(14)">14 Days (2 Wks)</button>
+                            <button type="button" class="btn-chip" onclick="setSliderPreset(30)">30 Days (1 Mo)</button>
+                        </div>
+                    </div>
+
+                    <!-- TOTAL ALLOWANCE INPUT -->
+                    <div class="form-group">
+                        <label for="setupTotalAllowance">Total Allowance (₱)</label>
+                        <div class="input-with-icon">
+                            <span class="currency-prefix">₱</span>
+                            <input type="number" id="setupTotalAllowance" class="form-control currency-input" placeholder="1000.00" step="0.01" min="1" required oninput="triggerLiveCalculation()">
+                        </div>
+                    </div>
+
+                    <!-- DESIRED SAVINGS INPUT -->
+                    <div class="form-group">
+                        <label for="setupDesiredSavings">Desired Savings (₱)</label>
+                        <div class="input-with-icon">
+                            <span class="currency-prefix">₱</span>
+                            <input type="number" id="setupDesiredSavings" class="form-control currency-input" placeholder="200.00" step="0.01" min="0" required oninput="triggerLiveCalculation()">
+                        </div>
+                    </div>
+
+                    <!-- LIVE FORMULA CALCULATOR PREVIEW -->
+                    <div class="live-calc-box">
+                        <div class="calc-header">
+                            <i class="fa-solid fa-calculator"></i> Daily Spending Calculation
+                        </div>
+                        <div class="calc-formula">
+                            Recommended Daily Spending = (Allowance − Savings) ÷ Days
+                        </div>
+                        <div class="calc-breakdown" id="calcBreakdownText">
+                            (₱1,000.00 − ₱200.00) ÷ 7 days = <strong>₱114.29 / day</strong>
+                        </div>
+                        <div class="calc-result-badge" id="calcResultDisplay">
+                            Recommended: ₱114.29 / day
+                        </div>
+                    </div>
+
+                    <div id="setupFormError" class="alert alert-danger hidden"></div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeBudgetSetupModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check-circle"></i> Create & Start Budget
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MODAL 2: BUDGET HISTORY & SWITCHER MODAL -->
+    <div id="budgetHistoryModal" class="modal-overlay hidden">
+        <div class="modal-card card modal-lg animate-pop-in">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock-history"></i> Budget History & Periods</h3>
+                <button type="button" class="modal-close-btn" onclick="closeBudgetHistoryModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="flex-between mb-3">
+                    <p class="text-muted">Select a budget period to view or set it as active.</p>
+                    <button class="btn btn-primary btn-sm" onclick="closeBudgetHistoryModal(); openBudgetSetupModal();">
+                        <i class="fa-solid fa-plus"></i> New Budget Period
+                    </button>
+                </div>
+
+                <div id="budgetHistoryList" class="budget-history-grid">
+                    <!-- Dynamic Budget Cards -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeBudgetHistoryModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
