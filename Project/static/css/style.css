@@ -851,7 +851,7 @@ body.theme-dark .calc-header { color: var(--primary-500); }
 }
 
 .modal-card {
-    width: 100%;
+     width: 100%;
     max-width: 540px;
     max-height: 90vh;
     display: flex;
@@ -882,8 +882,10 @@ body.theme-dark .calc-header { color: var(--primary-500); }
 .modal-close-btn:hover { color: var(--rose-500); }
 
 .modal-body {
-    padding: 1.5rem;
+   padding: 1.5rem;
     overflow-y: auto;
+    overflow-x: hidden;
+    max-height: calc(90vh - 140px);
 }
 
 .modal-footer {
