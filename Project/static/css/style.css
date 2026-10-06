@@ -1022,4 +1022,43 @@ body {
         width: 100%;
         overflow: visible;
     }
+
+   @media (max-width: 600px) {
+    .modal-overlay {
+        padding: 0.5rem;
+        align-items: center;
+    }
+
+    .modal-card {
+        width: 100%;
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: 14px;
+    }
+
+    .modal-header {
+        padding: 1rem;
+        flex-shrink: 0;
+    }
+
+    .modal-body {
+        padding: 1rem;
+        overflow-y: auto;
+        max-height: calc(95vh - 120px);
+    }
+
+    .modal-footer {
+        padding: 0.75rem 1rem;
+        flex-shrink: 0;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .col-6 {
+        width: 100%;
+    }
+}
 }
